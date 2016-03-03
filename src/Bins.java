@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 /**
  * Runs a number of algorithms that try to fit files onto disks.
@@ -25,20 +26,16 @@ public class Bins {
         }
         return results;
     }
-
-    /**
-     * The main program.
-     */
-    public static void main (String args[]) {
-        Bins b = new Bins();
-        Scanner input = new Scanner(Bins.class.getClassLoader().getResourceAsStream(DATA_FILE));
-        List<Integer> data = b.readData(input);
-
-        PriorityQueue<Disk> pq = new PriorityQueue<Disk>();
+    
+    public void fitDisksAndPrint(Scanner input, Consumer<List<Integer>> transformList) {
+    	
+        
+        List<Integer> data = readData(input);
+    	transformList.accept(data);
+    	
+    	PriorityQueue<Disk> pq = new PriorityQueue<Disk>();
         pq.add(new Disk(0));
-
         int diskId = 1;
-        int total = 0;
         for (Integer size : data) {
             Disk d = pq.peek();
             if (d.freeSpace() > size) {
@@ -51,10 +48,8 @@ public class Bins {
                 d2.add(size);
                 pq.add(d2);
             }
-            total += size;
         }
-
-        System.out.println("total size = " + total / 1000000.0 + "GB");
+        
         System.out.println();
         System.out.println("worst-fit method");
         System.out.println("number of pq used: " + pq.size());
@@ -62,31 +57,29 @@ public class Bins {
             System.out.println(pq.poll());
         }
         System.out.println();
+    }
+    
 
-        Collections.sort(data, Collections.reverseOrder());
-        pq.add(new Disk(0));
+    /**
+     * The main program.
+     */
+    public static void main (String args[]) {
+    	Scanner input = new Scanner("data/example.txt");
+    	Bins b = new Bins();
+    	b.fitDisksAndPrint(input, (List<Integer> integers) -> {
+    		int total = 0;
+    		for (int d : integers) { 
+    			total += d; }
+    		System.out.println("Total: " + total);});
+    	input = new Scanner(Bins.class.getClassLoader().getResourceAsStream(DATA_FILE));
+    	b.fitDisksAndPrint(input, (List<Integer> integers) -> {Collections.sort(integers); });
+        
+        
 
-        diskId = 1;
-        for (Integer size : data) {
-            Disk d = pq.peek();
-            if (d.freeSpace() >= size) {
-                pq.poll();
-                d.add(size);
-                pq.add(d);
-            } else {
-                Disk d2 = new Disk(diskId);
-                diskId++;
-                d2.add(size);
-                pq.add(d2);
-            }
-        }
+        
+        
+        
 
-        System.out.println();
-        System.out.println("worst-fit decreasing method");
-        System.out.println("number of pq used: " + pq.size());
-        while (!pq.isEmpty()) {
-            System.out.println(pq.poll());
-        }
-        System.out.println();
+        
     }
 }
